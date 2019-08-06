@@ -1,0 +1,22 @@
+---
+title: "6306 Case Study 2"
+author: "Jonathan Tan"
+date: "8/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data import1}
+nadata1 <- read.csv("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2CompSet No Attrition.csv")
+nsdata1 <- readxl::read_xlsx("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2CompSet No Salary.xlsx")
+case2data1 <- read.csv("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2-data.csv")
+```
+
+```{r probing}
+
+
+
+```
