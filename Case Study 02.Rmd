@@ -8,15 +8,88 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+DUE AUG 17th
 ```{r data import1}
 nadata1 <- read.csv("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2CompSet No Attrition.csv")
 nsdata1 <- readxl::read_xlsx("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2CompSet No Salary.xlsx")
-case2data1 <- read.csv("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2-data.csv")
+maindata <- read.csv("D:/SMU/DS 6306 Doing Data Science/DS_6306_case_study_01/MSDS-6306-Doing-Data-Science/UNIT 14/CaseStudy2-data.csv")
+#maindata is going to be split into test/train sets, then apply to na/ns data to guess salary and attrition rate
 ```
 
-```{r probing}
+
+```{r split data randomly tho}
+#set.seed() reproducable rates? some way to randomize a vector and iterate down that vector to get a set of random rates? or just iterate over it multiple times to get averaged results?
+#for now seed it, add randomity later
+
+sampleset <- sample(1:2, size = nrow(maindata), replace = TRUE, prob =c(0.6896552, .3103448))
+traindata <- maindata[sampleset == 1,]
+testdata <- maindata[sampleset == 2,]
+#not sure if this is worth it, different %test/train comes out each time
+```
+
+```{r split data non randomly}
+library(caTools)
+set.seed(858)
+sampleset = sample.split(maindata, SplitRatio = 0.7)
+traindata <- subset(maindata, sampleset == TRUE)
+testdata = subset(maindata, sampleset == FALSE)
+#still ends up with different set sizes if not seeded
+```
+
+```{r data vis}
+library(ggplot2)
+ggplot(traindata, aes(x = JobRole, fill = Attrition)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)), alpha = 0.5) +
+  ylab("% ?") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+  #lab techs, research sci, sales exec, and sales rep have higher attrition rates than the rest? 
+
+ggplot(traindata, aes(x = PerformanceRating, fill = Attrition)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)), alpha = 0.5) +
+  ylab("% ?") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+#lower performance rating correlates slightly with increased attrition
+
+ggplot(traindata, aes(x = NumCompaniesWorked, fill = Attrition)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)), alpha = 0.5) +
+  ylab("% ?") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+
+ggplot(traindata, aes(x = YearsSinceLastPromotion, fill = Attrition)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)), alpha = 0.5) +
+  ylab("% ?") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+#outlier? the 15+ years have higher attrition rate
+
+ggplot(data = traindata, mapping = aes(x = Attrition, y = EmployeeNumber, color = traindata$EmployeeNumber)) + geom_point()
 
 
+ggplot(data = maindata, mapping = aes(x = Attrition, y = MonthlyIncome, fill = Age)) + geom_boxplot()
+```
 
+
+```{r build model}
+library(lme4)
+#res <- model.matrix(~JobRole, data = traindata)
+#maindata$Attrition <- as.factor( maindata$Attrition)
+num.attrition <- as.integer(maindata$Attrition)
+maindata2 <- cbind(maindata, num.attrition)
+m1 <- lm(num.attrition ~ Age + BusinessTravel + Gender, data = maindata2)
+summary(m1)
+#how to get around this??? convert factor to numeric? that doesn't seem right though 
+```
+```{r analyse fit}
+ggplot(data = maindata2, aes(m1$residuals)) +
+  geom_histogram(binwidth = .1, color = "black", fill = "grey") + 
+  theme(panel.background = element_rect(fill = "white"), 
+        axis.line.x = element_line(), 
+        axis.line.y = element_line()) + 
+  ggtitle("residuals of model m1")
+
+#hmm not that normal 
+```
+
+```{r predict}
+pred1 <- predict(m1, testdata)
+summary(pred1)
 ```
